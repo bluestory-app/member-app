@@ -211,8 +211,7 @@ function setTankFields(tank) {
   } else if (tank.includes("スチール")) {
     document.getElementById("tankType").value = "スチール";
   }
-  const size = stripUnit(tank);
-  document.getElementById("tankSize").value = size;
+  document.getElementById("tankSize").value = stripUnit(tank);
 }
 
 async function loadEditData() {
@@ -255,11 +254,14 @@ async function main() {
   }
 
   profileData = await liff.getProfile();
-  editId = getParam("editId");
-  isEditMode = !!editId;
+
+  editId = localStorage.getItem("editLogId") || "";
+  isEditMode = getParam("mode") === "edit" && !!editId;
 
   if (isEditMode) {
     await loadEditData();
+  } else {
+    localStorage.removeItem("editLogId");
   }
 }
 
@@ -269,7 +271,7 @@ async function saveLog() {
   const tank = tankType && tankSize ? `${tankType} ${tankSize}L` : "";
 
   const data = {
-    editId: editId,
+    editId: isEditMode ? editId : "",
     diveCount: document.getElementById("diveCount").value,
     divePoint: document.getElementById("divePoint").value,
     date: document.getElementById("date").value,
@@ -291,7 +293,12 @@ async function saveLog() {
     body: JSON.stringify(data)
   });
 
-  document.getElementById("status").textContent = isEditMode ? "更新しました" : "保存しました";
+  if (isEditMode) {
+    document.getElementById("status").textContent = "更新しました";
+    localStorage.removeItem("editLogId");
+  } else {
+    document.getElementById("status").textContent = "保存しました";
+  }
 }
 
 main();
