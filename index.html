@@ -12,7 +12,6 @@ body {
   margin: 0;
   padding: 24px;
 }
-
 .card {
   max-width: 420px;
   margin: 40px auto;
@@ -20,13 +19,11 @@ body {
   padding: 24px;
   border-radius: 12px;
 }
-
 .ticket {
   font-size: 40px;
   font-weight: bold;
   margin: 12px 0 20px;
 }
-
 button, .medical-btn {
   display: inline-block;
   margin: 8px 4px;
@@ -52,31 +49,22 @@ button, .medical-btn {
   <p>残りチケット</p>
   <p id="ticket" class="ticket">-</p>
 
-  <a id="medicalLink" class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
+  <a class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
     メディカルチェック
   </a>
 
   <p id="id" style="font-size:12px;color:#999;"></p>
-
-  <div id="adminButtons">
-    <h3>チケット操作</h3>
-    <button onclick="changeTicket('plus')">+1</button>
-    <button onclick="changeTicket('minus')">-1</button>
-  </div>
-
-  <p id="result"></p>
 </div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
+const LIFF_ID = "2009495218-3Egr37Ub";
 
 let currentUserId = "";
-let currentName = "";
 
 async function main() {
   try {
-    await liff.init({ liffId: "2009495218-3Egr37Ub" });
+    await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login();
@@ -85,16 +73,11 @@ async function main() {
 
     const profile = await liff.getProfile();
 
-    currentName = profile.displayName;
     currentUserId = profile.userId;
 
     document.getElementById("status").textContent = "取得完了";
     document.getElementById("name").textContent = profile.displayName;
     document.getElementById("id").textContent = profile.userId;
-
-    if (currentUserId !== ADMIN_ID) {
-      document.getElementById("adminButtons").style.display = "none";
-    }
 
     const registerUrl =
       GAS_URL +
@@ -121,21 +104,6 @@ async function loadTicket() {
   const res = await fetch(url);
   const text = await res.text();
   document.getElementById("ticket").textContent = text;
-}
-
-async function changeTicket(mode) {
-  const url =
-    GAS_URL +
-    "?mode=" + mode +
-    "&name=" + encodeURIComponent(currentName) +
-    "&userId=" + encodeURIComponent(currentUserId);
-
-  await fetch(url);
-
-  document.getElementById("result").textContent =
-    mode === "plus" ? "チケットを1増やしました" : "チケットを1減らしました";
-
-  await loadTicket();
 }
 
 main();
