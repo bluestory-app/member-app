@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ログ履歴</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  padding: 16px;
+  margin: 0;
+}
+.card {
+  max-width: 420px;
+  margin: auto;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+}
+.item {
+  border-bottom: 1px solid #ddd;
+  padding: 12px 0;
+}
+.title {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.sub {
+  color: #666;
+  font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>ログ履歴</h2>
+  <div id="list">読み込み中...</div>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
+const LIFF_ID = "2009495218-3Egr37Ub";
+
+async function main() {
+  await liff.init({ liffId: LIFF_ID });
+
+  if (!liff.isLoggedIn()) {
+    liff.login();
+    return;
+  }
+
+  const profile = await liff.getProfile();
+
+  const res = await fetch(
+    GAS_URL + "?mode=loglist&userId=" + encodeURIComponent(profile.userId)
+  );
+
+  const data = await res.json();
+  const list = document.getElementById("list");
+
+  if (!data.length) {
+    list.innerHTML = "ログなし";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="title">${item.date} / ${item.point}</div>
+      <div>本数：${item.count}</div>
+      <div>天候：${item.weather}</div>
+      <div>透明度：${item.visibility}</div>
+      <div>水温：${item.water}</div>
+      <div class="sub">${item.memo || ""}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+main();
+</script>
+
+</body>
+</html>
