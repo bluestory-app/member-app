@@ -84,7 +84,7 @@ button {
 <body>
 
 <div class="card">
-  <h2>ログ入力</h2>
+  <h2 id="pageTitle">ログ入力</h2>
 
   <div class="field">
     <label for="diveCount">本数</label>
@@ -181,7 +181,7 @@ button {
     <div class="fixed-box" id="instructorSignView">IT24194 Hirahara</div>
   </div>
 
-  <button onclick="saveLog()">保存</button>
+  <button onclick="saveLog()" id="saveButton">保存</button>
   <p id="status"></p>
 </div>
 
@@ -191,6 +191,60 @@ const LIFF_ID = "2009495218-3Egr37Ub";
 const INSTRUCTOR_SIGN = "IT24194 Hirahara";
 
 let profileData = {};
+let editId = "";
+let isEditMode = false;
+
+function getParam(name) {
+  const params = new URLSearchParams(location.search);
+  return params.get(name) || "";
+}
+
+function stripUnit(value) {
+  if (!value) return "";
+  return String(value).replace(/[^\d.]/g, "");
+}
+
+function setTankFields(tank) {
+  if (!tank) return;
+  if (tank.includes("アルミ")) {
+    document.getElementById("tankType").value = "アルミ";
+  } else if (tank.includes("スチール")) {
+    document.getElementById("tankType").value = "スチール";
+  }
+  const size = stripUnit(tank);
+  document.getElementById("tankSize").value = size;
+}
+
+async function loadEditData() {
+  const url =
+    GAS_URL +
+    "?mode=logdetail" +
+    "&editId=" + encodeURIComponent(editId) +
+    "&userId=" + encodeURIComponent(profileData.userId);
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data || !data.logId) {
+    document.getElementById("status").textContent = "編集データが見つかりません";
+    return;
+  }
+
+  document.getElementById("pageTitle").textContent = "ログ編集";
+  document.getElementById("saveButton").textContent = "更新";
+
+  document.getElementById("diveCount").value = data.diveCount || "";
+  document.getElementById("divePoint").value = data.divePoint || "";
+  document.getElementById("date").value = data.date ? String(data.date).split("T")[0] : "";
+  document.getElementById("weather").value = data.weather || "";
+  document.getElementById("visibility").value = stripUnit(data.visibility);
+  document.getElementById("airTemp").value = stripUnit(data.airTemp);
+  document.getElementById("waterTemp").value = stripUnit(data.waterTemp);
+  document.getElementById("diveTime").value = stripUnit(data.diveTime);
+  document.getElementById("depth").value = stripUnit(data.depth);
+  setTankFields(data.tank || "");
+  document.getElementById("memo").value = data.memo || "";
+}
 
 async function main() {
   await liff.init({ liffId: LIFF_ID });
@@ -201,6 +255,12 @@ async function main() {
   }
 
   profileData = await liff.getProfile();
+  editId = getParam("editId");
+  isEditMode = !!editId;
+
+  if (isEditMode) {
+    await loadEditData();
+  }
 }
 
 async function saveLog() {
@@ -209,6 +269,7 @@ async function saveLog() {
   const tank = tankType && tankSize ? `${tankType} ${tankSize}L` : "";
 
   const data = {
+    editId: editId,
     diveCount: document.getElementById("diveCount").value,
     divePoint: document.getElementById("divePoint").value,
     date: document.getElementById("date").value,
@@ -230,7 +291,7 @@ async function saveLog() {
     body: JSON.stringify(data)
   });
 
-  document.getElementById("status").textContent = "保存しました";
+  document.getElementById("status").textContent = isEditMode ? "更新しました" : "保存しました";
 }
 
 main();
