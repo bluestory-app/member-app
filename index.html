@@ -52,7 +52,7 @@ button, .medical-btn {
   <p>残りチケット</p>
   <p id="ticket" class="ticket">-</p>
 
-  <a id="medicalLink" class="medical-btn" href="#" target="_blank" style="display:none;">
+  <a id="medicalLink" class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
     メディカルチェック
   </a>
 
@@ -69,7 +69,7 @@ button, .medical-btn {
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-const ADMIN_ID = "ytocz66";
+const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
 
 let currentUserId = "";
 let currentName = "";
@@ -105,7 +105,6 @@ async function main() {
     await fetch(registerUrl);
 
     await loadTicket();
-    loadMedical();
 
   } catch (e) {
     document.getElementById("status").textContent = "エラー";
@@ -122,12 +121,6 @@ async function loadTicket() {
   const res = await fetch(url);
   const text = await res.text();
   document.getElementById("ticket").textContent = text;
-}
-
-function loadMedical() {
-  const link = document.getElementById("medicalLink");
-  link.href = "https://www.bluestory.jp/diver-medical-participant-questionnaire/";
-  link.style.display = "inline-block";
 }
 
 async function changeTicket(mode) {
