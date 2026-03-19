@@ -10,6 +10,7 @@ body {
   font-family: sans-serif;
   background: #f5f5f5;
   padding: 16px;
+  margin: 0;
 }
 .card {
   max-width: 420px;
@@ -18,17 +19,55 @@ body {
   padding: 16px;
   border-radius: 12px;
 }
-input, textarea {
-  width: 100%;
-  margin: 6px 0;
-  padding: 8px;
+h2 {
+  margin-top: 0;
+}
+.field {
+  margin-bottom: 12px;
+}
+label {
+  display: block;
   font-size: 14px;
+  margin-bottom: 6px;
+}
+input, select, textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+textarea {
+  resize: none;
+  min-height: 100px;
+}
+.unit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.unit-wrap input,
+.unit-wrap select {
+  flex: 1;
+}
+.unit {
+  min-width: 24px;
+  font-size: 14px;
+  color: #666;
 }
 button {
   width: 100%;
   padding: 12px;
   margin-top: 10px;
   font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #eee;
+}
+#status {
+  margin-top: 12px;
 }
 </style>
 </head>
@@ -38,20 +77,97 @@ button {
 <div class="card">
   <h2>ログ入力</h2>
 
-  <input id="diveCount" placeholder="本数">
-  <input id="divePoint" placeholder="ダイブポイント">
-  <input id="date" type="date">
-  <input id="weather" placeholder="天候">
-  <input id="visibility" placeholder="透明度">
-  <input id="airTemp" placeholder="気温">
-  <input id="waterTemp" placeholder="水温">
-  <input id="diveTime" placeholder="ダイブ時間">
-  <input id="depth" placeholder="水深">
-  <input id="tank" placeholder="タンク">
-  <textarea id="memo" placeholder="メモ"></textarea>
+  <div class="field">
+    <label for="diveCount">本数</label>
+    <div class="unit-wrap">
+      <input id="diveCount" type="number" placeholder="例：25">
+      <span class="unit">本</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="divePoint">ダイブポイント</label>
+    <input id="divePoint" placeholder="例：八丈島 ナズマド">
+  </div>
+
+  <div class="field">
+    <label for="date">日付</label>
+    <input id="date" type="date">
+  </div>
+
+  <div class="field">
+    <label for="weather">天候</label>
+    <select id="weather">
+      <option value="">選択してください</option>
+      <option value="晴れ">晴れ</option>
+      <option value="曇り">曇り</option>
+      <option value="雨">雨</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="visibility">透明度</label>
+    <div class="unit-wrap">
+      <input id="visibility" type="number" placeholder="例：15">
+      <span class="unit">M</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="airTemp">気温</label>
+    <div class="unit-wrap">
+      <input id="airTemp" type="number" placeholder="例：26">
+      <span class="unit">℃</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="waterTemp">水温</label>
+    <div class="unit-wrap">
+      <input id="waterTemp" type="number" placeholder="例：22">
+      <span class="unit">℃</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="diveTime">ダイブ時間</label>
+    <div class="unit-wrap">
+      <input id="diveTime" type="number" placeholder="例：45">
+      <span class="unit">分</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="depth">水深</label>
+    <div class="unit-wrap">
+      <input id="depth" type="number" placeholder="例：18">
+      <span class="unit">M</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="tankType">タンク種類</label>
+    <select id="tankType">
+      <option value="">選択してください</option>
+      <option value="アルミ">アルミ</option>
+      <option value="スチール">スチール</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="tankSize">タンク容量</label>
+    <div class="unit-wrap">
+      <input id="tankSize" type="number" placeholder="例：10">
+      <span class="unit">L</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="memo">メモ</label>
+    <textarea id="memo" placeholder="自由に記入"></textarea>
+  </div>
 
   <button onclick="saveLog()">保存</button>
-
   <p id="status"></p>
 </div>
 
@@ -73,17 +189,21 @@ async function main() {
 }
 
 async function saveLog() {
+  const tankType = document.getElementById("tankType").value;
+  const tankSize = document.getElementById("tankSize").value;
+  const tank = tankType && tankSize ? `${tankType} ${tankSize}L` : "";
+
   const data = {
     diveCount: document.getElementById("diveCount").value,
     divePoint: document.getElementById("divePoint").value,
     date: document.getElementById("date").value,
     weather: document.getElementById("weather").value,
-    visibility: document.getElementById("visibility").value,
-    airTemp: document.getElementById("airTemp").value,
-    waterTemp: document.getElementById("waterTemp").value,
-    diveTime: document.getElementById("diveTime").value,
-    depth: document.getElementById("depth").value,
-    tank: document.getElementById("tank").value,
+    visibility: document.getElementById("visibility").value ? `${document.getElementById("visibility").value}M` : "",
+    airTemp: document.getElementById("airTemp").value ? `${document.getElementById("airTemp").value}℃` : "",
+    waterTemp: document.getElementById("waterTemp").value ? `${document.getElementById("waterTemp").value}℃` : "",
+    diveTime: document.getElementById("diveTime").value ? `${document.getElementById("diveTime").value}分` : "",
+    depth: document.getElementById("depth").value ? `${document.getElementById("depth").value}M` : "",
+    tank: tank,
     memo: document.getElementById("memo").value,
     name: profileData.displayName,
     userId: profileData.userId
