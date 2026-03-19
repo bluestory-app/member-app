@@ -30,6 +30,16 @@ body {
 .sub {
   color: #666;
   font-size: 13px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.edit-btn {
+  display: inline-block;
+  padding: 8px 14px;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #eee;
 }
 </style>
 </head>
@@ -79,9 +89,14 @@ async function main() {
       <div>透明度：${item.visibility}</div>
       <div>水温：${item.water}</div>
       <div class="sub">${item.memo || ""}</div>
+      <button class="edit-btn" onclick="editLog('${item.logId}')">編集</button>
     `;
     list.appendChild(div);
   });
+}
+
+function editLog(id) {
+  location.href = "log.html?editId=" + id;
 }
 
 main();
