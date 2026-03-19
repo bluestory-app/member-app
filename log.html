@@ -178,7 +178,7 @@ button {
 
   <div class="field">
     <label>インストラクターサイン</label>
-    <div class="fixed-box" id="instructorSignView">IT24194 Hirahara</div>
+    <div class="fixed-box">IT24194 Hirahara</div>
   </div>
 
   <button onclick="saveLog()" id="saveButton">保存</button>
@@ -249,19 +249,17 @@ async function main() {
   await liff.init({ liffId: LIFF_ID });
 
   if (!liff.isLoggedIn()) {
-    liff.login();
+    liff.login({ redirectUri: location.href });
     return;
   }
 
   profileData = await liff.getProfile();
 
-  editId = localStorage.getItem("editLogId") || "";
-  isEditMode = getParam("mode") === "edit" && !!editId;
+  editId = getParam("editId");
+  isEditMode = !!editId;
 
   if (isEditMode) {
     await loadEditData();
-  } else {
-    localStorage.removeItem("editLogId");
   }
 }
 
@@ -293,14 +291,8 @@ async function saveLog() {
     body: JSON.stringify(data)
   });
 
-  if (isEditMode) {
-    document.getElementById("status").textContent = "更新しました";
-    localStorage.removeItem("editLogId");
-  } else {
-    document.getElementById("status").textContent = "保存しました";
-  }
+  document.getElementById("status").textContent = isEditMode ? "更新しました" : "保存しました";
 }
-
 main();
 </script>
 
