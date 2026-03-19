@@ -49,7 +49,7 @@ button, .medical-btn {
   <p>残りチケット</p>
   <p id="ticket" class="ticket">-</p>
 
-  <a id="medicalLink" class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
+  <a class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
     メディカルチェック
   </a>
 
@@ -66,6 +66,10 @@ button, .medical-btn {
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
+
+// ★ここが今回の修正ポイント（admin用のLIFF ID）
+const LIFF_ID = "2009495218-LHVAPqEa";
+
 const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
 
 let currentUserId = "";
@@ -73,7 +77,7 @@ let currentName = "";
 
 async function main() {
   try {
-    await liff.init({ liffId: "2009495218-LHVAPqEa"});
+    await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login();
@@ -85,6 +89,7 @@ async function main() {
     currentName = profile.displayName;
     currentUserId = profile.userId;
 
+    // 管理者チェック
     if (currentUserId !== ADMIN_ID) {
       document.body.innerHTML = "<div style='padding:24px;font-family:sans-serif;'>管理者のみ開けます</div>";
       return;
@@ -94,6 +99,7 @@ async function main() {
     document.getElementById("name").textContent = profile.displayName;
     document.getElementById("id").textContent = profile.userId;
 
+    // 登録
     const registerUrl =
       GAS_URL +
       "?mode=register" +
@@ -101,6 +107,7 @@ async function main() {
       "&userId=" + encodeURIComponent(profile.userId);
 
     await fetch(registerUrl);
+
     await loadTicket();
 
   } catch (e) {
