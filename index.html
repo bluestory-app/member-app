@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <title>BlueStory Member</title>
-
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
@@ -13,6 +12,7 @@ body {
   margin: 0;
   padding: 24px;
 }
+
 .card {
   max-width: 420px;
   margin: 40px auto;
@@ -20,15 +20,23 @@ body {
   padding: 24px;
   border-radius: 12px;
 }
+
 .ticket {
   font-size: 40px;
   font-weight: bold;
   margin: 12px 0 20px;
 }
-button {
+
+button, .medical-btn {
+  display: inline-block;
   margin: 8px 4px;
   padding: 12px 18px;
   font-size: 16px;
+  text-decoration: none;
+  color: black;
+  background: #eee;
+  border: none;
+  border-radius: 8px;
 }
 </style>
 </head>
@@ -44,12 +52,16 @@ button {
   <p>残りチケット</p>
   <p id="ticket" class="ticket">-</p>
 
+  <a id="medicalLink" class="medical-btn" href="#" target="_blank" style="display:none;">
+    メディカルチェック
+  </a>
+
   <p id="id" style="font-size:12px;color:#999;"></p>
 
   <div id="adminButtons">
     <h3>チケット操作</h3>
-    <button onclick="changeTicket('plus')">＋1</button>
-    <button onclick="changeTicket('minus')">−1</button>
+    <button onclick="changeTicket('plus')">+1</button>
+    <button onclick="changeTicket('minus')">-1</button>
   </div>
 
   <p id="result"></p>
@@ -61,32 +73,6 @@ const ADMIN_ID = "ytocz66";
 
 let currentUserId = "";
 let currentName = "";
-
-async function loadTicket() {
-  const url =
-    GAS_URL +
-    "?mode=get" +
-    "&userId=" + encodeURIComponent(currentUserId);
-
-  const res = await fetch(url);
-  const text = await res.text();
-  document.getElementById("ticket").textContent = text;
-}
-
-async function changeTicket(mode) {
-  const url =
-    GAS_URL +
-    "?mode=" + mode +
-    "&name=" + encodeURIComponent(currentName) +
-    "&userId=" + encodeURIComponent(currentUserId);
-
-  await fetch(url);
-
-  document.getElementById("result").textContent =
-    mode === "plus" ? "チケットを1増やしました" : "チケットを1減らしました";
-
-  await loadTicket();
-}
 
 async function main() {
   try {
@@ -119,6 +105,7 @@ async function main() {
     await fetch(registerUrl);
 
     await loadTicket();
+    loadMedical();
 
   } catch (e) {
     document.getElementById("status").textContent = "エラー";
@@ -126,9 +113,40 @@ async function main() {
   }
 }
 
+async function loadTicket() {
+  const url =
+    GAS_URL +
+    "?mode=get" +
+    "&userId=" + encodeURIComponent(currentUserId);
+
+  const res = await fetch(url);
+  const text = await res.text();
+  document.getElementById("ticket").textContent = text;
+}
+
+function loadMedical() {
+  const link = document.getElementById("medicalLink");
+  link.href = "https://www.bluestory.jp/diver-medical-participant-questionnaire/";
+  link.style.display = "inline-block";
+}
+
+async function changeTicket(mode) {
+  const url =
+    GAS_URL +
+    "?mode=" + mode +
+    "&name=" + encodeURIComponent(currentName) +
+    "&userId=" + encodeURIComponent(currentUserId);
+
+  await fetch(url);
+
+  document.getElementById("result").textContent =
+    mode === "plus" ? "チケットを1増やしました" : "チケットを1減らしました";
+
+  await loadTicket();
+}
+
 main();
 </script>
 
 </body>
-</html>s
-<!-- -->
+</html>
