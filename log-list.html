@@ -59,7 +59,7 @@ async function main() {
   await liff.init({ liffId: LIFF_ID });
 
   if (!liff.isLoggedIn()) {
-    liff.login();
+    liff.login({ redirectUri: location.href });
     return;
   }
 
@@ -96,8 +96,7 @@ async function main() {
 }
 
 function editLog(id) {
-  localStorage.setItem("editLogId", id);
-  location.href = "https://bluestory-app.github.io/member-app/log.html?mode=edit";
+  location.href = "https://bluestory-app.github.io/member-app/log.html?editId=" + encodeURIComponent(id) + "&v=5";
 }
 
 main();
