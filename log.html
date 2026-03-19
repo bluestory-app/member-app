@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>BlueStory Log</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  padding: 16px;
+}
+.card {
+  max-width: 420px;
+  margin: auto;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+}
+input, textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px;
+  font-size: 14px;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>ログ入力</h2>
+
+  <input id="diveCount" placeholder="本数">
+  <input id="divePoint" placeholder="ダイブポイント">
+  <input id="date" type="date">
+  <input id="weather" placeholder="天候">
+  <input id="visibility" placeholder="透明度">
+  <input id="airTemp" placeholder="気温">
+  <input id="waterTemp" placeholder="水温">
+  <input id="diveTime" placeholder="ダイブ時間">
+  <input id="depth" placeholder="水深">
+  <input id="tank" placeholder="タンク">
+  <textarea id="memo" placeholder="メモ"></textarea>
+
+  <button onclick="saveLog()">保存</button>
+
+  <p id="status"></p>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
+const LIFF_ID = "2009495218-3Egr37Ub";
+
+let profileData = {};
+
+async function main() {
+  await liff.init({ liffId: LIFF_ID });
+
+  if (!liff.isLoggedIn()) {
+    liff.login();
+    return;
+  }
+
+  profileData = await liff.getProfile();
+}
+
+async function saveLog() {
+  const data = {
+    diveCount: document.getElementById("diveCount").value,
+    divePoint: document.getElementById("divePoint").value,
+    date: document.getElementById("date").value,
+    weather: document.getElementById("weather").value,
+    visibility: document.getElementById("visibility").value,
+    airTemp: document.getElementById("airTemp").value,
+    waterTemp: document.getElementById("waterTemp").value,
+    diveTime: document.getElementById("diveTime").value,
+    depth: document.getElementById("depth").value,
+    tank: document.getElementById("tank").value,
+    memo: document.getElementById("memo").value,
+    name: profileData.displayName,
+    userId: profileData.userId
+  };
+
+  await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+
+  document.getElementById("status").textContent = "保存しました";
+}
+
+main();
+</script>
+
+</body>
+</html>
