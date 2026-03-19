@@ -73,7 +73,7 @@ async function main() {
     const div = document.createElement("div");
     div.className = "item";
     div.innerHTML = `
-      <div class="title">${item.date} / ${item.point}</div>
+      <div class="title">${item.date.split("T")[0]} / ${item.point}</div>
       <div>本数：${item.count}</div>
       <div>天候：${item.weather}</div>
       <div>透明度：${item.visibility}</div>
