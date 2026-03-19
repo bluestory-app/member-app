@@ -57,6 +57,15 @@ textarea {
   font-size: 14px;
   color: #666;
 }
+.fixed-box {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
 button {
   width: 100%;
   padding: 12px;
@@ -167,6 +176,11 @@ button {
     <textarea id="memo" placeholder="自由に記入"></textarea>
   </div>
 
+  <div class="field">
+    <label>インストラクターサイン</label>
+    <div class="fixed-box" id="instructorSignView">IT24194 Hirahara</div>
+  </div>
+
   <button onclick="saveLog()">保存</button>
   <p id="status"></p>
 </div>
@@ -174,6 +188,7 @@ button {
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
 const LIFF_ID = "2009495218-3Egr37Ub";
+const INSTRUCTOR_SIGN = "IT24194 Hirahara";
 
 let profileData = {};
 
@@ -205,6 +220,7 @@ async function saveLog() {
     depth: document.getElementById("depth").value ? `${document.getElementById("depth").value}M` : "",
     tank: tank,
     memo: document.getElementById("memo").value,
+    instructorSign: INSTRUCTOR_SIGN,
     name: profileData.displayName,
     userId: profileData.userId
   };
