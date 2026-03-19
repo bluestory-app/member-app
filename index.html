@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>BlueStory Member</title>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 24px;
+}
+.card {
+  max-width: 420px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+}
+.ticket {
+  font-size: 40px;
+  font-weight: bold;
+  margin: 12px 0 20px;
+}
+button {
+  margin: 8px 4px;
+  padding: 12px 18px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>BlueStory Member</h2>
+
+  <p id="status">読み込み中...</p>
+  <p id="name"></p>
+
+  <p>残りチケット</p>
+  <p id="ticket" class="ticket">-</p>
+
+  <p id="id" style="font-size:12px;color:#999;"></p>
+
+  <div id="adminButtons">
+    <h3>チケット操作</h3>
+    <button onclick="changeTicket('plus')">＋1</button>
+    <button onclick="changeTicket('minus')">−1</button>
+  </div>
+
+  <p id="result"></p>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
+const ADMIN_ID = "ytocz66";
+
+let currentUserId = "";
+let currentName = "";
+
+async function loadTicket() {
+  const url =
+    GAS_URL +
+    "?mode=get" +
+    "&userId=" + encodeURIComponent(currentUserId);
+
+  const res = await fetch(url);
+  const text = await res.text();
+  document.getElementById("ticket").textContent = text;
+}
+
+async function changeTicket(mode) {
+  const url =
+    GAS_URL +
+    "?mode=" + mode +
+    "&name=" + encodeURIComponent(currentName) +
+    "&userId=" + encodeURIComponent(currentUserId);
+
+  await fetch(url);
+
+  document.getElementById("result").textContent =
+    mode === "plus" ? "チケットを1増やしました" : "チケットを1減らしました";
+
+  await loadTicket();
+}
+
+async function main() {
+  try {
+    await liff.init({ liffId: "2009495218-3Egr37Ub" });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    const profile = await liff.getProfile();
+
+    currentName = profile.displayName;
+    currentUserId = profile.userId;
+
+    document.getElementById("status").textContent = "取得完了";
+    document.getElementById("name").textContent = profile.displayName;
+    document.getElementById("id").textContent = profile.userId;
+
+    if (currentUserId !== ADMIN_ID) {
+      document.getElementById("adminButtons").style.display = "none";
+    }
+
+    const registerUrl =
+      GAS_URL +
+      "?mode=register" +
+      "&name=" + encodeURIComponent(profile.displayName) +
+      "&userId=" + encodeURIComponent(profile.userId);
+
+    await fetch(registerUrl);
+
+    await loadTicket();
+
+  } catch (e) {
+    document.getElementById("status").textContent = "エラー";
+    document.getElementById("name").textContent = String(e);
+  }
+}
+
+main();
+</script>
+
+</body>
+</html>s
