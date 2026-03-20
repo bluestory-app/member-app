@@ -53,7 +53,8 @@ button {
   <button onclick="savePayment('あり','現金')">チケット使用 + 差額を現金</button>
   <button onclick="savePayment('なし','現金')">チケット不使用 + 満額を現金</button>
 
-  <img id="qr" src="paypay.png">
+  <!-- ★QRコード -->
+  <img id="qr" src="761AD27B-ABEC-4633-9496-D2DE2C25EC68.png">
 
   <p id="status"></p>
 </div>
@@ -75,10 +76,12 @@ async function main() {
   profileData = await liff.getProfile();
 }
 
+// QR表示
 function showQR() {
   document.getElementById("qr").style.display = "block";
 }
 
+// 支払い処理
 async function savePayment(ticket, method) {
   const url =
     GAS_URL +
