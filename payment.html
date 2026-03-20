@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <title>支払い方法</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 body {
   font-family: sans-serif;
   background: #f5f5f5;
-  padding: 16px;
   margin: 0;
+  padding: 12px;
 }
+
 .card {
   max-width: 420px;
   margin: auto;
@@ -20,9 +23,11 @@ body {
   border-radius: 12px;
   text-align: center;
 }
+
 h2 {
   margin-top: 0;
 }
+
 button {
   width: 100%;
   padding: 14px;
@@ -32,23 +37,31 @@ button {
   border-radius: 10px;
   background: #eee;
 }
+
+/* ★ここが重要（スマホ最適化） */
 #qr {
   display: none;
   width: 100%;
-  max-width: 340px;
+  max-width: 360px;
   margin: 24px auto;
-  border-radius: 12px;
 }
+
+/* ★QR表示時はボタンを少し小さく */
+.qr-mode button {
+  opacity: 0.5;
+}
+
 #status {
   margin-top: 12px;
   font-weight: bold;
+  font-size: 15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="card" id="card">
   <h2>支払い方法</h2>
   <p>該当するものを選んでください</p>
 
@@ -57,10 +70,8 @@ button {
   <button onclick="savePayment('あり','現金')">チケット使用 + 差額を現金</button>
   <button onclick="savePayment('なし','現金')">チケット不使用 + 満額を現金</button>
 
-  <!-- ★絶対URLでQR表示 -->
   <img id="qr"
-       src="https://bluestory-app.github.io/member-app/761AD27B-ABEC-4633-9496-D2DE2C25EC68.png?v=1"
-       alt="PayPay QR">
+       src="https://bluestory-app.github.io/member-app/761AD27B-ABEC-4633-9496-D2DE2C25EC68.png?v=2">
 
   <p id="status"></p>
 </div>
@@ -82,9 +93,17 @@ async function main() {
   profileData = await liff.getProfile();
 }
 
-// QR表示
+// QR表示（ここ強化）
 function showQR() {
   document.getElementById("qr").style.display = "block";
+  document.getElementById("card").classList.add("qr-mode");
+
+  // 少し下にスクロール（UX）
+  setTimeout(() => {
+    document.getElementById("qr").scrollIntoView({
+      behavior: "smooth"
+    });
+  }, 100);
 }
 
 // 支払い処理
