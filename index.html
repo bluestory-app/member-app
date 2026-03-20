@@ -53,6 +53,9 @@ button, .medical-btn {
     メディカルチェック
   </a>
 
+  <!-- ★追加：支払いボタン -->
+  <button onclick="goPayment()">支払い</button>
+
   <p id="id" style="font-size:12px;color:#999;"></p>
 </div>
 
@@ -104,6 +107,11 @@ async function loadTicket() {
   const res = await fetch(url);
   const text = await res.text();
   document.getElementById("ticket").textContent = text;
+}
+
+// ★追加：支払いページへ移動
+function goPayment() {
+  location.href = "payment.html";
 }
 
 main();
