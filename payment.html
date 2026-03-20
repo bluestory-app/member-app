@@ -31,6 +31,11 @@ button {
   border-radius: 10px;
   background: #eee;
 }
+#qr {
+  display: none;
+  width: 200px;
+  margin: 20px auto 0;
+}
 #status {
   margin-top: 12px;
 }
@@ -48,8 +53,7 @@ button {
   <button onclick="savePayment('あり','現金')">チケット使用 + 差額を現金</button>
   <button onclick="savePayment('なし','現金')">チケット不使用 + 満額を現金</button>
 
-  <!-- QR表示用 -->
-  <img id="qr" src="paypay.png" style="display:none;width:200px;margin-top:20px;">
+  <img id="qr" src="paypay.png">
 
   <p id="status"></p>
 </div>
@@ -71,7 +75,10 @@ async function main() {
   profileData = await liff.getProfile();
 }
 
-// ★②：UX改善済み
+function showQR() {
+  document.getElementById("qr").style.display = "block";
+}
+
 async function savePayment(ticket, method) {
   const url =
     GAS_URL +
