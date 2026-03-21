@@ -20,9 +20,6 @@
       margin: auto;
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-    h1 {
-      margin-bottom: 20px;
-    }
     .ticket {
       font-size: 48px;
       margin: 20px 0;
@@ -52,14 +49,14 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz.../exec"; // ←ここあなたの本物にして
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
 
-const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff"; // ←あなたのLINE ID
+const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
 
 async function main() {
 
   await liff.init({
-    liffId: "2009495218-2KrxBegx" // ←管理用LIFF ID
+    liffId: "2009495218-2KrxBegx"
   });
 
   if (!liff.isLoggedIn()) {
