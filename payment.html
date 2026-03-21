@@ -38,7 +38,11 @@ button {
   background: #eee;
 }
 
-/* ★ここが重要（スマホ最適化） */
+button:disabled {
+  opacity: 0.4;
+}
+
+/* QR */
 #qr {
   display: none;
   width: 100%;
@@ -46,34 +50,35 @@ button {
   margin: 24px auto;
 }
 
-/* ★QR表示時はボタンを少し小さく */
-.qr-mode button {
-  opacity: 0.5;
+/* 強調表示 */
+.big-message {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 16px;
 }
 
 #status {
   margin-top: 12px;
   font-weight: bold;
-  font-size: 15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card" id="card">
+<div class="card">
   <h2>支払い方法</h2>
   <p>該当するものを選んでください</p>
 
-  <button onclick="savePayment('あり','PayPay')">チケット使用 + 差額をPayPay</button>
-  <button onclick="savePayment('なし','PayPay')">チケット不使用 + 満額をPayPay</button>
-  <button onclick="savePayment('あり','現金')">チケット使用 + 差額を現金</button>
-  <button onclick="savePayment('なし','現金')">チケット不使用 + 満額を現金</button>
+  <button onclick="handlePay('あり','PayPay')">チケット使用 + 差額をPayPay</button>
+  <button onclick="handlePay('なし','PayPay')">チケット不使用 + 満額をPayPay</button>
+  <button onclick="handlePay('あり','現金')">チケット使用 + 差額を現金</button>
+  <button onclick="handlePay('なし','現金')">チケット不使用 + 満額を現金</button>
 
   <img id="qr"
        src="https://bluestory-app.github.io/member-app/761AD27B-ABEC-4633-9496-D2DE2C25EC68.png?v=2">
 
-  <p id="status"></p>
+  <div id="status"></div>
 </div>
 
 <script>
@@ -93,21 +98,26 @@ async function main() {
   profileData = await liff.getProfile();
 }
 
-// QR表示（ここ強化）
-function showQR() {
-  document.getElementById("qr").style.display = "block";
-  document.getElementById("card").classList.add("qr-mode");
+// ボタン制御
+function disableButtons() {
+  const buttons = document.querySelectorAll("button");
+  buttons.forEach(btn => btn.disabled = true);
+}
 
-  // 少し下にスクロール（UX）
+// QR表示
+function showQR() {
+  const qr = document.getElementById("qr");
+  qr.style.display = "block";
+
   setTimeout(() => {
-    document.getElementById("qr").scrollIntoView({
-      behavior: "smooth"
-    });
+    qr.scrollIntoView({ behavior: "smooth" });
   }, 100);
 }
 
 // 支払い処理
-async function savePayment(ticket, method) {
+async function handlePay(ticket, method) {
+  disableButtons();
+
   const url =
     GAS_URL +
     "?mode=payment" +
@@ -118,18 +128,18 @@ async function savePayment(ticket, method) {
 
   await fetch(url);
 
-  let message = "記録しました";
+  let message = "";
 
   if (method === "PayPay") {
-    message = "このQRを読み込んでお支払いしてください";
+    message = "<div class='big-message'>このQRを読み込んでお支払いしてください</div>";
     showQR();
   }
 
   if (method === "現金") {
-    message = "スタッフに現金をお渡しください";
+    message = "<div class='big-message'>スタッフに現金をお渡しください</div>";
   }
 
-  document.getElementById("status").textContent = message;
+  document.getElementById("status").innerHTML = message;
 }
 
 main();
