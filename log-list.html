@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <title>ログ履歴</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 body {
   font-family: sans-serif;
   background: #f5f5f5;
-  padding: 16px;
-  margin: 0;
+  padding: 12px;
 }
+
 .card {
   max-width: 420px;
   margin: auto;
@@ -19,27 +21,16 @@ body {
   padding: 16px;
   border-radius: 12px;
 }
+
 .item {
-  border-bottom: 1px solid #ddd;
-  padding: 12px 0;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
 }
-.title {
+
+.lock {
+  text-align: center;
   font-weight: bold;
-  margin-bottom: 6px;
-}
-.sub {
-  color: #666;
-  font-size: 13px;
-  margin-top: 6px;
-  margin-bottom: 10px;
-}
-.edit-btn {
-  display: inline-block;
-  padding: 8px 14px;
-  font-size: 14px;
-  border: none;
-  border-radius: 8px;
-  background: #eee;
+  margin-top: 40px;
 }
 </style>
 </head>
@@ -48,6 +39,7 @@ body {
 
 <div class="card">
   <h2>ログ履歴</h2>
+
   <div id="list">読み込み中...</div>
 </div>
 
@@ -55,48 +47,64 @@ body {
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
 const LIFF_ID = "2009495218-3Egr37Ub";
 
+let userId = "";
+
 async function main() {
   await liff.init({ liffId: LIFF_ID });
 
   if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: location.href });
+    liff.login();
     return;
   }
 
   const profile = await liff.getProfile();
+  userId = profile.userId;
 
-  const res = await fetch(
-    GAS_URL + "?mode=loglist&userId=" + encodeURIComponent(profile.userId)
-  );
+  // ロックチェック
+  const checkUrl =
+    GAS_URL +
+    "?mode=membercheck" +
+    "&userId=" + encodeURIComponent(userId);
 
-  const data = await res.json();
-  const list = document.getElementById("list");
+  const res = await fetch(checkUrl);
+  const result = await res.text();
 
-  if (!data.length) {
-    list.innerHTML = "ログなし";
+  if (result !== "OK") {
+    document.getElementById("list").innerHTML =
+      "<div class='lock'>ログは会員のみ閲覧できます</div>";
     return;
   }
 
-  list.innerHTML = "";
-
-  data.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <div class="title">${String(item.date).split("T")[0]} / ${item.point}</div>
-      <div>本数：${item.count}</div>
-      <div>天候：${item.weather}</div>
-      <div>透明度：${item.visibility}</div>
-      <div>水温：${item.water}</div>
-      <div class="sub">${item.memo || ""}</div>
-      <button class="edit-btn" onclick="editLog('${item.logId}')">編集</button>
-    `;
-    list.appendChild(div);
-  });
+  loadLogs();
 }
 
-function editLog(id) {
-  location.href = "https://bluestory-app.github.io/member-app/log.html?editId=" + encodeURIComponent(id) + "&v=5";
+async function loadLogs() {
+  const url =
+    GAS_URL +
+    "?mode=loglist" +
+    "&userId=" + encodeURIComponent(userId);
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data.length === 0) {
+    document.getElementById("list").textContent = "ログがありません";
+    return;
+  }
+
+  let html = "";
+
+  data.forEach(item => {
+    html += `
+      <div class="item">
+        <b>${item.point}</b><br>
+        ${item.date} / ${item.weather}<br>
+        水温: ${item.water}
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
 }
 
 main();
