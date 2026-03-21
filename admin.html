@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BlueStory Admin</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
@@ -10,19 +11,25 @@
       font-family: Arial, sans-serif;
       background: #f5f5f5;
       text-align: center;
-      padding: 40px;
+      padding: 24px;
+      margin: 0;
     }
     .card {
       background: white;
-      padding: 30px;
+      padding: 24px;
       border-radius: 16px;
       max-width: 400px;
-      margin: auto;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      margin: 40px auto;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 16px;
     }
     .ticket {
       font-size: 48px;
       margin: 20px 0;
+      font-weight: bold;
     }
     button {
       padding: 12px 20px;
@@ -32,83 +39,100 @@
       font-size: 18px;
       background: #eee;
     }
+    #status {
+      margin-bottom: 8px;
+    }
   </style>
 </head>
-
 <body>
 
 <div class="card">
   <h1>BlueStory Admin</h1>
   <p id="status">読み込み中...</p>
+  <p id="name"></p>
 
   <p>現在チケット</p>
   <div class="ticket" id="ticket">-</div>
 
-  <button onclick="updateTicket(1)">+1</button>
-  <button onclick="updateTicket(-1)">-1</button>
+  <button onclick="changeTicket('plus')">+1</button>
+  <button onclick="changeTicket('minus')">-1</button>
+
+  <p id="id" style="font-size:12px;color:#999;"></p>
 </div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-
 const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
+const ADMIN_LIFF_ID = "2009495218-2KrxBegx";
+
+let currentUserId = "";
+let currentName = "";
 
 async function main() {
-
-  await liff.init({
-    liffId: "2009495218-2KrxBegx"
-  });
-
-  if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: location.href });
-    return;
-  }
-
-  const profile = await liff.getProfile();
-  const userId = profile.userId;
-
-  // 🔒 管理者ロック
-  if (userId !== ADMIN_ID) {
-    document.body.innerHTML = `
-      <div style="padding:40px;text-align:center;">
-        <h2>アクセス不可</h2>
-        <p>このページは管理者のみ利用できます。</p>
-      </div>
-    `;
-    return;
-  }
-
-  document.getElementById("status").innerText = "ログインOK";
-
-  loadTicket(userId);
-}
-
-// チケット取得
-async function loadTicket(userId) {
   try {
-    const res = await fetch(`${GAS_URL}?type=get&userId=${userId}`);
-    const data = await res.json();
-    document.getElementById("ticket").innerText = data.ticket || 0;
+    await liff.init({
+      liffId: ADMIN_LIFF_ID
+    });
+
+    if (!liff.isLoggedIn()) {
+      liff.login({ redirectUri: location.href });
+      return;
+    }
+
+    const profile = await liff.getProfile();
+    currentUserId = profile.userId;
+    currentName = profile.displayName;
+
+    if (currentUserId !== ADMIN_ID) {
+      document.body.innerHTML = `
+        <div style="padding:40px;text-align:center;font-family:Arial,sans-serif;">
+          <h2>アクセス不可</h2>
+          <p>このページは管理者のみ利用できます。</p>
+        </div>
+      `;
+      return;
+    }
+
+    document.getElementById("status").textContent = "ログインOK";
+    document.getElementById("name").textContent = profile.displayName;
+    document.getElementById("id").textContent = profile.userId;
+
+    await loadTicket();
+
   } catch (e) {
-    document.getElementById("status").innerText = "通信エラー";
+    document.getElementById("status").textContent = "エラー";
+    document.getElementById("name").textContent = String(e);
   }
 }
 
-// チケット更新
-async function updateTicket(num) {
-  const profile = await liff.getProfile();
-  const userId = profile.userId;
+async function loadTicket() {
+  try {
+    const url =
+      GAS_URL +
+      "?mode=get" +
+      "&userId=" + encodeURIComponent(currentUserId);
 
-  await fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "update",
-      userId: userId,
-      value: num
-    })
-  });
+    const res = await fetch(url);
+    const text = await res.text();
+    document.getElementById("ticket").textContent = text;
+  } catch (e) {
+    document.getElementById("status").textContent = "通信エラー";
+  }
+}
 
-  loadTicket(userId);
+async function changeTicket(mode) {
+  try {
+    const url =
+      GAS_URL +
+      "?mode=" + mode +
+      "&name=" + encodeURIComponent(currentName) +
+      "&userId=" + encodeURIComponent(currentUserId);
+
+    await fetch(url);
+    await loadTicket();
+  } catch (e) {
+    document.getElementById("status").textContent = "通信エラー";
+  }
 }
 
 main();
