@@ -5,26 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BlueStory Admin</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
-      text-align: center;
-      padding: 24px;
       margin: 0;
+      padding: 24px;
+      text-align: center;
     }
     .card {
-      background: white;
+      background: #fff;
       padding: 24px;
       border-radius: 16px;
-      max-width: 400px;
+      max-width: 420px;
       margin: 40px auto;
       box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     }
-    h1 {
+    h1, h2 {
       margin-top: 0;
-      margin-bottom: 16px;
     }
     .ticket {
       font-size: 48px;
@@ -39,15 +37,15 @@
       font-size: 18px;
       background: #eee;
     }
-    #status {
-      margin-bottom: 8px;
+    #adminArea, #lockArea {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>BlueStory Admin</h1>
+<div class="card" id="adminArea">
+  <h1>管理者ページ</h1>
   <p id="status">読み込み中...</p>
   <p id="name"></p>
 
@@ -60,6 +58,11 @@
   <p id="id" style="font-size:12px;color:#999;"></p>
 </div>
 
+<div class="card" id="lockArea">
+  <h2>アクセス不可</h2>
+  <p>このページは管理者のみ利用できます。</p>
+</div>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
 const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
@@ -68,11 +71,19 @@ const ADMIN_LIFF_ID = "2009495218-2KrxBegx";
 let currentUserId = "";
 let currentName = "";
 
+function showLock() {
+  document.getElementById("adminArea").style.display = "none";
+  document.getElementById("lockArea").style.display = "block";
+}
+
+function showAdmin() {
+  document.getElementById("lockArea").style.display = "none";
+  document.getElementById("adminArea").style.display = "block";
+}
+
 async function main() {
   try {
-    await liff.init({
-      liffId: ADMIN_LIFF_ID
-    });
+    await liff.init({ liffId: ADMIN_LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login({ redirectUri: location.href });
@@ -84,15 +95,11 @@ async function main() {
     currentName = profile.displayName;
 
     if (currentUserId !== ADMIN_ID) {
-      document.body.innerHTML = `
-        <div style="padding:40px;text-align:center;font-family:Arial,sans-serif;">
-          <h2>アクセス不可</h2>
-          <p>このページは管理者のみ利用できます。</p>
-        </div>
-      `;
+      showLock();
       return;
     }
 
+    showAdmin();
     document.getElementById("status").textContent = "ログインOK";
     document.getElementById("name").textContent = profile.displayName;
     document.getElementById("id").textContent = profile.userId;
@@ -100,8 +107,8 @@ async function main() {
     await loadTicket();
 
   } catch (e) {
-    document.getElementById("status").textContent = "エラー";
-    document.getElementById("name").textContent = String(e);
+    // LIFFエラーでもエラー文は出さず、アクセス不可に統一
+    showLock();
   }
 }
 
