@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>BlueStory Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
@@ -24,53 +25,54 @@ body {
   font-weight: bold;
   margin: 12px 0 20px;
 }
-button, .medical-btn {
+button {
   display: inline-block;
   margin: 8px 4px;
   padding: 12px 18px;
   font-size: 16px;
-  text-decoration: none;
   color: black;
   background: #eee;
   border: none;
   border-radius: 8px;
+}
+.lock-message {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.6;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="card" id="adminArea" style="display:none;">
   <h2>BlueStory Admin</h2>
 
   <p id="status">読み込み中...</p>
   <p id="name"></p>
 
-  <p>残りチケット</p>
+  <p>現在チケット</p>
   <p id="ticket" class="ticket">-</p>
 
-  <a class="medical-btn" href="https://www.bluestory.jp/diver-medical-participant-questionnaire/" target="_blank">
-    メディカルチェック
-  </a>
-
-  <p id="id" style="font-size:12px;color:#999;"></p>
-
-  <div id="adminButtons">
-    <h3>チケット操作</h3>
-    <button onclick="changeTicket('plus')">+1</button>
-    <button onclick="changeTicket('minus')">-1</button>
+  <div>
+    <button onclick="plusTicket()">+1</button>
+    <button onclick="minusTicket()">-1</button>
   </div>
 
-  <p id="result"></p>
+  <p id="id" style="font-size:12px;color:#999;"></p>
+</div>
+
+<div class="card" id="lockArea" style="display:none;">
+  <h2>管理画面</h2>
+  <p class="lock-message">このページは運営者のみ利用できます。</p>
+  <p>ご不明な場合は管理者へご連絡ください。</p>
 </div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-
-// ★ここが今回の修正ポイント（admin用のLIFF ID）
-const LIFF_ID = "2009495218-LHVAPqEa";
-
-const ADMIN_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
+const LIFF_ID = "2009495218-3Egr37Ub";
+const ADMIN_USER_ID = "Uc36f9a2cd5ab6dd416591d92f46315ff";
 
 let currentUserId = "";
 let currentName = "";
@@ -80,37 +82,28 @@ async function main() {
     await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
-      liff.login();
+      liff.login({ redirectUri: location.href });
       return;
     }
 
     const profile = await liff.getProfile();
-
-    currentName = profile.displayName;
     currentUserId = profile.userId;
+    currentName = profile.displayName;
 
-    // 管理者チェック
-    if (currentUserId !== ADMIN_ID) {
-      document.body.innerHTML = "<div style='padding:24px;font-family:sans-serif;'>管理者のみ開けます</div>";
+    if (currentUserId !== ADMIN_USER_ID) {
+      document.getElementById("lockArea").style.display = "block";
       return;
     }
 
-    document.getElementById("status").textContent = "管理画面";
+    document.getElementById("adminArea").style.display = "block";
+    document.getElementById("status").textContent = "取得完了";
     document.getElementById("name").textContent = profile.displayName;
     document.getElementById("id").textContent = profile.userId;
-
-    // 登録
-    const registerUrl =
-      GAS_URL +
-      "?mode=register" +
-      "&name=" + encodeURIComponent(profile.displayName) +
-      "&userId=" + encodeURIComponent(profile.userId);
-
-    await fetch(registerUrl);
 
     await loadTicket();
 
   } catch (e) {
+    document.getElementById("adminArea").style.display = "block";
     document.getElementById("status").textContent = "エラー";
     document.getElementById("name").textContent = String(e);
   }
@@ -127,18 +120,25 @@ async function loadTicket() {
   document.getElementById("ticket").textContent = text;
 }
 
-async function changeTicket(mode) {
+async function plusTicket() {
   const url =
     GAS_URL +
-    "?mode=" + mode +
+    "?mode=plus" +
     "&name=" + encodeURIComponent(currentName) +
     "&userId=" + encodeURIComponent(currentUserId);
 
   await fetch(url);
+  await loadTicket();
+}
 
-  document.getElementById("result").textContent =
-    mode === "plus" ? "チケットを1増やしました" : "チケットを1減らしました";
+async function minusTicket() {
+  const url =
+    GAS_URL +
+    "?mode=minus" +
+    "&name=" + encodeURIComponent(currentName) +
+    "&userId=" + encodeURIComponent(currentUserId);
 
+  await fetch(url);
   await loadTicket();
 }
 
