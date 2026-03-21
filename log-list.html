@@ -1,113 +1,155 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-<meta charset="utf-8">
-<title>ログ履歴</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ログ一覧</title>
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 body {
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
   background: #f5f5f5;
   margin: 0;
-  padding: 12px;
+  padding: 20px;
 }
-.card {
+
+.container {
   max-width: 420px;
   margin: auto;
+}
+
+.card {
   background: #fff;
   padding: 16px;
+  margin-bottom: 12px;
   border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.05);
 }
-.item {
-  border-bottom: 1px solid #eee;
-  padding: 12px 0;
-}
+
 .title {
+  font-size: 20px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-.msg {
-  font-weight: bold;
-  line-height: 1.6;
+
+.sub {
+  font-size: 14px;
+  color: #666;
+}
+
+.empty {
+  text-align: center;
+  margin-top: 80px;
+  color: #999;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>ログ履歴</h2>
-  <div id="list">読み込み中...</div>
+<div class="container" id="app">
+  <div class="empty">読み込み中...</div>
 </div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-const LIFF_ID = "2009495218-3Egr37Ub";
+const LIFF_ID = "2009495218-2KrxBegx";
 
-async function main() {
+// 管理者ID
+const ADMIN_IDS = [
+  "Uc36f9a2cd5ab6dd416591d92f46315ff"
+];
+
+// =====================
+// 管理者チェック
+// =====================
+async function checkAdmin() {
   try {
     await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login();
-      return;
+      return false;
     }
 
     const profile = await liff.getProfile();
     const userId = profile.userId;
 
-    // 会員チェック
-    const checkRes = await fetch(
-      GAS_URL +
-      "?mode=membercheck" +
-      "&userId=" + encodeURIComponent(userId)
-    );
-    const checkText = await checkRes.text();
-
-    if (checkText !== "OK") {
-      document.getElementById("list").innerHTML =
-        "<div class='msg'>ログは会員のみ閲覧できます</div>";
-      return;
+    if (!ADMIN_IDS.includes(userId)) {
+      document.body.innerHTML = `
+        <div style="
+          max-width:420px;
+          margin:100px auto;
+          background:#fff;
+          padding:24px;
+          border-radius:16px;
+          text-align:center;
+        ">
+          <h2>アクセス不可</h2>
+          <p>このページは管理者のみ利用できます。</p>
+        </div>
+      `;
+      return false;
     }
 
-    // ログ取得
-    const logRes = await fetch(
-      GAS_URL +
-      "?mode=loglist" +
-      "&userId=" + encodeURIComponent(userId)
-    );
-    const data = await logRes.json();
+    return true;
+
+  } catch (e) {
+    document.body.innerHTML = `
+      <div style="text-align:center;margin-top:100px;">
+        アクセス不可
+      </div>
+    `;
+    return false;
+  }
+}
+
+// =====================
+// ログ取得
+// =====================
+async function loadLogs() {
+  try {
+    const res = await fetch(GAS_URL + "?mode=getLogs");
+    const data = await res.json();
 
     if (!data || data.length === 0) {
-      document.getElementById("list").innerHTML =
-        "<div class='msg'>ログがありません</div>";
+      document.getElementById("app").innerHTML =
+        `<div class="empty">ログがありません</div>`;
       return;
     }
 
     let html = "";
 
-    data.forEach(item => {
-      const dateText = String(item.date || "").split("T")[0];
+    data.reverse().forEach(log => {
       html += `
-        <div class="item">
-          <div class="title">${dateText} / ${item.point || ""}</div>
-          <div>本数：${item.count || ""}</div>
-          <div>天候：${item.weather || ""}</div>
-          <div>透明度：${item.visibility || ""}</div>
-          <div>水温：${item.water || ""}</div>
-          <div>${item.memo || ""}</div>
+        <div class="card">
+          <div class="title">${log.date || "-"}</div>
+          <div class="sub">ポイント：${log.divePoint || "-"}</div>
+          <div class="sub">本数：${log.diveCount || "-"}</div>
+          <div class="sub">水温：${log.waterTemp || "-"}</div>
+          <div class="sub">メモ：${log.memo || "-"}</div>
         </div>
       `;
     });
 
-    document.getElementById("list").innerHTML = html;
+    document.getElementById("app").innerHTML = html;
 
   } catch (e) {
-    document.getElementById("list").innerHTML =
-      "<div class='msg'>エラー: " + String(e) + "</div>";
+    document.getElementById("app").innerHTML =
+      `<div class="empty">読み込みエラー</div>`;
   }
+}
+
+// =====================
+// 初期処理
+// =====================
+async function main() {
+
+  if (!(await checkAdmin())) return;
+
+  await loadLogs();
 }
 
 main();
