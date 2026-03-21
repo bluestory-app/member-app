@@ -246,8 +246,10 @@ async function loadEditData() {
 }
 
 async function main() {
-  await liff.init({ liffId: LIFF_ID });
-
+  await liff.init({
+  liffId: "2009495218-3Egr37Ub"
+});
+  
   if (!liff.isLoggedIn()) {
     liff.login({ redirectUri: location.href });
     return;
