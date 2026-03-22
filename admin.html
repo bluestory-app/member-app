@@ -69,7 +69,7 @@ button {
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
 
-// ✅ 管理用LIFFに修正
+// ✅ 管理用LIFF（ここ重要）
 const LIFF_ID = "2009495218-LHVAPqEa";
 
 let currentUserId = "";
@@ -91,9 +91,13 @@ async function checkAdmin(userId) {
     "?mode=admincheck" +
     "&userId=" + encodeURIComponent(userId);
 
-  const res = await fetch(url);
-  const text = await res.text();
-  return text === "ADMIN";
+  try {
+    const res = await fetch(url);
+    const text = (await res.text()).trim();
+    return text === "ADMIN";
+  } catch (e) {
+    return false;
+  }
 }
 
 async function main() {
