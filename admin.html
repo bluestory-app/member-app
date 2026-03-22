@@ -1,47 +1,50 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BlueStory Admin</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 24px;
-      text-align: center;
-    }
-    .card {
-      background: #fff;
-      padding: 24px;
-      border-radius: 16px;
-      max-width: 420px;
-      margin: 40px auto;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    }
-    h1, h2 {
-      margin-top: 0;
-    }
-    .ticket {
-      font-size: 48px;
-      margin: 20px 0;
-      font-weight: bold;
-    }
-    button {
-      padding: 12px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      background: #eee;
-    }
-    #adminArea, #lockArea {
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlueStory Admin</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+}
+
+.card {
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  max-width: 420px;
+  margin: 40px auto;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.ticket {
+  font-size: 48px;
+  margin: 20px 0;
+  font-weight: bold;
+}
+
+button {
+  padding: 12px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  background: #eee;
+}
+
+#adminArea, #lockArea {
+  display: none;
+}
+</style>
 </head>
+
 <body>
 
 <div class="card" id="adminArea">
@@ -65,7 +68,7 @@
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-const ADMIN_LIFF_ID = "2009495218-2KrxBegx";
+const LIFF_ID = "2009495218-2KrxBegx";
 
 let currentUserId = "";
 let currentName = "";
@@ -80,7 +83,8 @@ function showAdmin() {
   document.getElementById("adminArea").style.display = "block";
 }
 
-async function isAdminUser(userId) {
+// 🔥 ここが新しい判定
+async function checkAdmin(userId) {
   const url =
     GAS_URL +
     "?mode=admincheck" +
@@ -88,12 +92,13 @@ async function isAdminUser(userId) {
 
   const res = await fetch(url);
   const text = await res.text();
+
   return text === "ADMIN";
 }
 
 async function main() {
   try {
-    await liff.init({ liffId: ADMIN_LIFF_ID });
+    await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login({ redirectUri: location.href });
@@ -104,7 +109,8 @@ async function main() {
     currentUserId = profile.userId;
     currentName = profile.displayName;
 
-    const isAdmin = await isAdminUser(currentUserId);
+    // 🔥 管理者チェック
+    const isAdmin = await checkAdmin(currentUserId);
 
     if (!isAdmin) {
       showLock();
@@ -112,9 +118,10 @@ async function main() {
     }
 
     showAdmin();
+
     document.getElementById("status").textContent = "ログインOK";
-    document.getElementById("name").textContent = profile.displayName;
-    document.getElementById("id").textContent = profile.userId;
+    document.getElementById("name").textContent = currentName;
+    document.getElementById("id").textContent = currentUserId;
 
     await loadTicket();
 
@@ -124,33 +131,25 @@ async function main() {
 }
 
 async function loadTicket() {
-  try {
-    const url =
-      GAS_URL +
-      "?mode=get" +
-      "&userId=" + encodeURIComponent(currentUserId);
+  const url =
+    GAS_URL +
+    "?mode=get" +
+    "&userId=" + encodeURIComponent(currentUserId);
 
-    const res = await fetch(url);
-    const text = await res.text();
-    document.getElementById("ticket").textContent = text;
-  } catch (e) {
-    document.getElementById("status").textContent = "通信エラー";
-  }
+  const res = await fetch(url);
+  const text = await res.text();
+  document.getElementById("ticket").textContent = text;
 }
 
 async function changeTicket(mode) {
-  try {
-    const url =
-      GAS_URL +
-      "?mode=" + mode +
-      "&name=" + encodeURIComponent(currentName) +
-      "&userId=" + encodeURIComponent(currentUserId);
+  const url =
+    GAS_URL +
+    "?mode=" + mode +
+    "&name=" + encodeURIComponent(currentName) +
+    "&userId=" + encodeURIComponent(currentUserId);
 
-    await fetch(url);
-    await loadTicket();
-  } catch (e) {
-    document.getElementById("status").textContent = "通信エラー";
-  }
+  await fetch(url);
+  await loadTicket();
 }
 
 main();
