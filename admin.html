@@ -68,7 +68,9 @@ button {
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzvaxVl03JQFoWcXT7QXoK23Z9kdv-0Uudq7oFNSQpluDh1pJWdhKn7pMey9sA4MRBf/exec";
-const LIFF_ID = "2009495218-2KrxBegx";
+
+// ✅ 管理用LIFFに修正
+const LIFF_ID = "2009495218-LHVAPqEa";
 
 let currentUserId = "";
 let currentName = "";
@@ -83,7 +85,6 @@ function showAdmin() {
   document.getElementById("adminArea").style.display = "block";
 }
 
-// 🔥 ここが新しい判定
 async function checkAdmin(userId) {
   const url =
     GAS_URL +
@@ -92,7 +93,6 @@ async function checkAdmin(userId) {
 
   const res = await fetch(url);
   const text = await res.text();
-
   return text === "ADMIN";
 }
 
@@ -107,10 +107,8 @@ async function main() {
 
     const profile = await liff.getProfile();
     currentUserId = profile.userId;
-currentName = profile.displayName;
+    currentName = profile.displayName;
 
-alert(currentUserId);
-    // 🔥 管理者チェック
     const isAdmin = await checkAdmin(currentUserId);
 
     if (!isAdmin) {
