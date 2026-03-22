@@ -107,8 +107,9 @@ async function main() {
 
     const profile = await liff.getProfile();
     currentUserId = profile.userId;
-    currentName = profile.displayName;
+currentName = profile.displayName;
 
+alert(currentUserId);
     // 🔥 管理者チェック
     const isAdmin = await checkAdmin(currentUserId);
 
